@@ -140,6 +140,8 @@
                     </iframe>
                 </div>
                 <p id="videoTitle" style="margin-top:15px; font-weight:bold; color:#331a00;">Now Playing: Selected Lesson</p>
+                <p style="margin-top:8px;"><a id="openLink" href="https://www.youtube.com/watch?v=rmbU97iftC8" target="_blank" rel="noopener" style="color:#331a00; font-weight:bold; text-decoration:underline;">Open on YouTube</a></p>
+                <p id="videoHint" style="margin-top:10px; color:#331a00; font-size:14px; max-width:420px; text-align:center;">If a lesson says "Video unavailable", the selected video may not be embeddable. Use the Open on YouTube link to watch it directly.</p>
             </div>
         </div>
 
@@ -151,6 +153,8 @@
             frame.src = `https://www.youtube.com/embed/${id}?rel=0&autoplay=1`;
             const titleEl = document.getElementById('videoTitle');
             if (titleEl) titleEl.textContent = 'Now Playing: ' + (title || 'Selected Lesson');
+            const openLink = document.getElementById('openLink');
+            if (openLink) openLink.href = `https://www.youtube.com/watch?v=${id}`;
         }
     </script>
 
