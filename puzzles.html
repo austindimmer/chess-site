@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puzzles - Chess Practice</title>
+    <link rel="stylesheet" href="style.css?v=2">
+</head>
+<body>
+
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="#">Analysis Lab</a>
+        <a href="lessons.html">Lessons</a>
+        <a href="puzzles.html" class="active-page">Puzzles</a>
+        <a href="#">Developer Information</a>
+    </nav>
+
+    <header>
+        <h1>CHESS PUZZLES</h1>
+    </header>
+
+    <div class="page-content puzzle-page">
+        <div class="puzzle-top-bar">
+            <div class="difficulty-label">Difficulty selector:</div>
+            <div class="difficulty-stars" id="difficultyStars" aria-label="Select difficulty">
+                <span class="star" data-value="1">★</span>
+                <span class="star" data-value="2">★</span>
+                <span class="star" data-value="3">★</span>
+                <span class="star" data-value="4">★</span>
+                <span class="star" data-value="5">★</span>
+            </div>
+            <div class="difficulty-message" id="difficultyMessage">Hover a star to preview difficulty.</div>
+        </div>
+
+        <div class="status-bar">
+            <div id="turnStatus" class="status-item">Turn: White</div>
+            <div id="gameStatus" class="status-item">Game status: In progress</div>
+        </div>
+
+        <div class="board-layout">
+            <div class="captured-panel captured-black">
+                <h2>Black captured</h2>
+                <div id="capturedBlack" class="captured-pieces"></div>
+            </div>
+            <div class="board-wrapper">
+                <div id="chessboard" aria-label="Interactive chess board"></div>
+            </div>
+            <div class="captured-panel captured-white">
+                <h2>White captured</h2>
+                <div id="capturedWhite" class="captured-pieces"></div>
+            </div>
+        </div>
+
+        <div class="history-panel">
+            <h2>Move History</h2>
+            <ol id="moveHistory" class="move-history"></ol>
+        </div>
+
+        <div class="board-instructions">
+            <p>Click a piece to select it, then click another square to move it. Legal moves only are shown in red, and the king cannot be captured.</p>
+        </div>
+    </div>
+
+    <script>
+        const files = ['a','b','c','d','e','f','g','h'];
+        const ranks = [8,7,6,5,4,3,2,1];
+
+        const startingPosition = {
+            a8: 'bR', b8: 'bN', c8: 'bB', d8: 'bQ', e8: 'bK', f8: 'bB', g8: 'bN', h8: 'bR',
+            a7: 'bP', b7: 'bP', c7: 'bP', d7: 'bP', e7: 'bP', f7: 'bP', g7: 'bP', h7: 'bP',
+            a2: 'wP', b2: 'wP', c2: 'wP', d2: 'wP', e2: 'wP', f2: 'wP', g2: 'wP', h2: 'wP',
+            a1: 'wR', b1: 'wN', c1: 'wB', d1: 'wQ', e1: 'wK', f1: 'wB', g1: 'wN', h1: 'wR'
+        };
+
+        const symbols = {
+            wK: '♔', wQ: '♕', wR: '♖', wB: '♗', wN: '♘', wP: '♙',
+            bK: '♚', bQ: '♛', bR: '♜', bB: '♝', bN: '♞', bP: '♟'
+        };
+
+        let boardState = {...startingPosition};
+        let selectedSquare = null;
+        // Track whether original king/rook starting squares have moved (prevents castling)
+        const movedByPosition = {
+            e1: false, h1: false, a1: false,
+            e8: false, h8: false, a8: false
+        };
+
+        function createBoard() {
+            const board = document.getElementById('chessboard');
+            board.innerHTML = '';
+            ranks.forEach((rank, rowIndex) => {
+                files.forEach((file, fileIndex) => {
+                    const squareName = `${file}${rank}`;
+                    const square = document.createElement('button');
+                    square.type = 'button';
+                    square.className = 'square ' + (((rowIndex + fileIndex) % 2 === 0) ? 'light' : 'dark');
+                    square.dataset.square = squareName;
+                    square.addEventListener('click', () => onSquareClick(squareName));
+                    const piece = document.createElement('span');
+                    piece.className = 'piece';
+                    square.appendChild(piece);
+                    board.appendChild(square);
+                });
+            });
+        }
+
+        let currentTurn = 'w';
+        let gameStatus = 'In progress';
+        const moveHistory = [];
+        const capturedWhite = [];
+        const capturedBlack = [];
+
+        function getOpponentColor(color) {
+            return color === 'w' ? 'b' : 'w';
+        }
+
+        function getColor(pieceCode) {
+            return pieceCode ? pieceCode[0] : null;
+        }
+
+        function getPieceType(pieceCode) {
+            return pieceCode ? pieceCode[1] : null;
+        }
+
+        function squareFromCoords(file, rank) {
+            return `${file}${rank}`;
+        }
+
+        function insideBoard(file, rank) {
+            return file >= 'a' && file <= 'h' && rank >= 1 && rank <= 8;
+        }
+
+        function getBoardPiece(square, board = boardState) {
+            return board[square] || null;
+        }
+
+        function canCapture(target, color) {
+            return target && getColor(target) !== color && getPieceType(target) !== 'K';
+        }
+
+        function addMoveIfValid(moves, file, rank, color) {
+            if (!insideBoard(file, rank)) return false;
+            const dest = squareFromCoords(file, rank);
+            const target = getBoardPiece(dest);
+            if (!target) {
+                moves.push(dest);
+                return true;
+            }
+            if (canCapture(target, color)) {
+                moves.push(dest);
+            }
+            return false;
+        }
+
+        function getPawnMoves(from, color) {
+            const file = from[0];
+            const rank = Number(from[1]);
+            const moves = [];
+            const direction = color === 'w' ? 1 : -1;
+            const startRank = color === 'w' ? 2 : 7;
+            const forwardOne = squareFromCoords(file, rank + direction);
+            if (insideBoard(file, rank + direction) && !getBoardPiece(forwardOne)) {
+                moves.push(forwardOne);
+                if (rank === startRank) {
+                    const forwardTwo = squareFromCoords(file, rank + direction * 2);
+                    if (!getBoardPiece(forwardTwo)) {
+                        moves.push(forwardTwo);
+                    }
+                }
+            }
+            [-1, 1].forEach(offset => {
+                const diagFile = String.fromCharCode(file.charCodeAt(0) + offset);
+                const diagRank = rank + direction;
+                if (!insideBoard(diagFile, diagRank)) return;
+                const dest = squareFromCoords(diagFile, diagRank);
+                const target = getBoardPiece(dest);
+                if (canCapture(target, color)) {
+                    moves.push(dest);
+                }
+            });
+            return moves;
+        }
+
+        function getKnightMoves(from, color) {
+            const file = from[0];
+            const rank = Number(from[1]);
+            const moves = [];
+            const deltas = [
+                [1,2], [2,1], [2,-1], [1,-2], [-1,-2], [-2,-1], [-2,1], [-1,2]
+            ];
+            deltas.forEach(([dx, dy]) => {
+                const targetFile = String.fromCharCode(file.charCodeAt(0) + dx);
+                const targetRank = rank + dy;
+                if (!insideBoard(targetFile, targetRank)) return;
+                const dest = squareFromCoords(targetFile, targetRank);
+                const target = getBoardPiece(dest);
+                if (!target || canCapture(target, color)) {
+                    moves.push(dest);
+                }
+            });
+            return moves;
+        }
+
+        function getSlidingMoves(from, color, directions) {
+            const file = from[0];
+            const rank = Number(from[1]);
+            const moves = [];
+            directions.forEach(([dx, dy]) => {
+                let step = 1;
+                while (true) {
+                    const targetFile = String.fromCharCode(file.charCodeAt(0) + dx * step);
+                    const targetRank = rank + dy * step;
+                    if (!insideBoard(targetFile, targetRank)) break;
+                    const dest = squareFromCoords(targetFile, targetRank);
+                    const target = getBoardPiece(dest);
+                    if (!target) {
+                        moves.push(dest);
+                    } else {
+                        if (canCapture(target, color)) {
+                            moves.push(dest);
+                        }
+                        break;
+                    }
+                    step += 1;
+                }
+            });
+            return moves;
+        }
+
+        function getKingMoves(from, color) {
+            const file = from[0];
+            const rank = Number(from[1]);
+            const moves = [];
+            for (let dx = -1; dx <= 1; dx++) {
+                for (let dy = -1; dy <= 1; dy++) {
+                    if (dx === 0 && dy === 0) continue;
+                    const targetFile = String.fromCharCode(file.charCodeAt(0) + dx);
+                    const targetRank = rank + dy;
+                    if (!insideBoard(targetFile, targetRank)) continue;
+                    const dest = squareFromCoords(targetFile, targetRank);
+                    const target = getBoardPiece(dest);
+                    if (!target || canCapture(target, color)) {
+                        moves.push(dest);
+                    }
+                }
+            }
+            // Castling: add potential castle destinations (will be filtered by legal move checks)
+            const kingStart = color === 'w' ? 'e1' : 'e8';
+            const rookK = color === 'w' ? 'h1' : 'h8';
+            const rookQ = color === 'w' ? 'a1' : 'a8';
+            if (from === kingStart && !movedByPosition[kingStart]) {
+                // kingside path
+                const fSquare = `${String.fromCharCode(file.charCodeAt(0) + 1)}${rank}`;
+                const gSquare = `${String.fromCharCode(file.charCodeAt(0) + 2)}${rank}`;
+                const rookKSq = rookK;
+                if (getBoardPiece(rookKSq) && getBoardPiece(rookKSq)[0] === color && !movedByPosition[rookKSq]) {
+                    if (!getBoardPiece(fSquare) && !getBoardPiece(gSquare)) {
+                        // cannot castle out of, through, or into check
+                        if (!isKingInCheck(color, boardState) && !isSquareAttacked(fSquare, getOpponentColor(color), boardState) && !isSquareAttacked(gSquare, getOpponentColor(color), boardState)) {
+                            moves.push(gSquare);
+                        }
+                    }
+                }
+                // queenside path
+                const dSquare = `${String.fromCharCode(file.charCodeAt(0) - 1)}${rank}`;
+                const cSquare = `${String.fromCharCode(file.charCodeAt(0) - 2)}${rank}`;
+                const bSquare = `${String.fromCharCode(file.charCodeAt(0) - 3)}${rank}`;
+                const rookQSq = rookQ;
+                if (getBoardPiece(rookQSq) && getBoardPiece(rookQSq)[0] === color && !movedByPosition[rookQSq]) {
+                    if (!getBoardPiece(dSquare) && !getBoardPiece(cSquare) && !getBoardPiece(bSquare)) {
+                        // king must not be in check, nor pass through dSquare or land on cSquare under attack
+                        if (!isKingInCheck(color, boardState) && !isSquareAttacked(dSquare, getOpponentColor(color), boardState) && !isSquareAttacked(cSquare, getOpponentColor(color), boardState)) {
+                            moves.push(cSquare);
+                        }
+                    }
+                }
+            }
+            return moves;
+        }
+
+        function simulateMove(from, to, board = boardState) {
+            const nextBoard = { ...board };
+            // normal move
+            nextBoard[to] = nextBoard[from];
+            delete nextBoard[from];
+            // if this is a king castling move (king moves two files), move rook in the simulated board as well
+            const piece = board[from];
+            if (piece && getPieceType(piece) === 'K') {
+                const fromFile = from[0].charCodeAt(0);
+                const toFile = to[0].charCodeAt(0);
+                const rank = from[1];
+                if (Math.abs(toFile - fromFile) === 2) {
+                    if (toFile > fromFile) {
+                        // kingside
+                        const rookFrom = `${String.fromCharCode('h'.charCodeAt(0))}${rank}`;
+                        const rookTo = `${String.fromCharCode(fromFile + 1)}${rank}`;
+                        if (nextBoard[rookFrom]) {
+                            nextBoard[rookTo] = nextBoard[rookFrom];
+                            delete nextBoard[rookFrom];
+                        }
+                    } else {
+                        // queenside
+                        const rookFrom = `${String.fromCharCode('a'.charCodeAt(0))}${rank}`;
+                        const rookTo = `${String.fromCharCode(fromFile - 1)}${rank}`;
+                        if (nextBoard[rookFrom]) {
+                            nextBoard[rookTo] = nextBoard[rookFrom];
+                            delete nextBoard[rookFrom];
+                        }
+                    }
+                }
+            }
+            return nextBoard;
+        }
+
+        function findKingSquare(color, board = boardState) {
+            return Object.keys(board).find(square => board[square] === `${color}K`) || null;
+        }
+
+        function canPieceAttackSquare(from, targetSquare, board, color) {
+            const type = getPieceType(board[from]);
+            const sourceFile = from[0];
+            const sourceRank = Number(from[1]);
+            const targetFile = targetSquare[0];
+            const targetRank = Number(targetSquare[1]);
+            const fileDiff = targetFile.charCodeAt(0) - sourceFile.charCodeAt(0);
+            const rankDiff = targetRank - sourceRank;
+
+            if (type === 'P') {
+                const direction = color === 'w' ? 1 : -1;
+                return rankDiff === direction && Math.abs(fileDiff) === 1;
+            }
+            if (type === 'N') {
+                return (Math.abs(fileDiff) === 1 && Math.abs(rankDiff) === 2) ||
+                       (Math.abs(fileDiff) === 2 && Math.abs(rankDiff) === 1);
+            }
+            if (type === 'B' || type === 'R' || type === 'Q') {
+                const stepX = Math.sign(fileDiff);
+                const stepY = Math.sign(rankDiff);
+                if (type === 'B' && Math.abs(fileDiff) !== Math.abs(rankDiff)) return false;
+                if (type === 'R' && fileDiff !== 0 && rankDiff !== 0) return false;
+                if (type === 'Q' && fileDiff !== 0 && rankDiff !== 0 && Math.abs(fileDiff) !== Math.abs(rankDiff)) return false;
+                const steps = Math.max(Math.abs(fileDiff), Math.abs(rankDiff));
+                for (let step = 1; step < steps; step++) {
+                    const intermediateFile = String.fromCharCode(sourceFile.charCodeAt(0) + stepX * step);
+                    const intermediateRank = sourceRank + stepY * step;
+                    if (getBoardPiece(squareFromCoords(intermediateFile, intermediateRank), board)) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            if (type === 'K') {
+                return Math.abs(fileDiff) <= 1 && Math.abs(rankDiff) <= 1;
+            }
+            return false;
+        }
+
+        function isSquareAttacked(square, attackerColor, board = boardState) {
+            return Object.keys(board).some(from => {
+                const piece = board[from];
+                return piece && getColor(piece) === attackerColor && canPieceAttackSquare(from, square, board, attackerColor);
+            });
+        }
+
+        function isKingInCheck(color, board = boardState) {
+            const kingSquare = findKingSquare(color, board);
+            if (!kingSquare) return false;
+            return isSquareAttacked(kingSquare, getOpponentColor(color), board);
+        }
+
+        function wouldLeaveKingInCheck(from, to) {
+            const color = getColor(getBoardPiece(from));
+            const nextBoard = simulateMove(from, to);
+            return isKingInCheck(color, nextBoard);
+        }
+
+        function getPotentialMoves(squareName) {
+            const pieceCode = getBoardPiece(squareName);
+            if (!pieceCode) return [];
+            const color = getColor(pieceCode);
+            const type = getPieceType(pieceCode);
+            switch (type) {
+                case 'P': return getPawnMoves(squareName, color);
+                case 'N': return getKnightMoves(squareName, color);
+                case 'B': return getSlidingMoves(squareName, color, [[1,1],[1,-1],[-1,1],[-1,-1]]);
+                case 'R': return getSlidingMoves(squareName, color, [[1,0],[-1,0],[0,1],[0,-1]]);
+                case 'Q': return getSlidingMoves(squareName, color, [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]]);
+                case 'K': return getKingMoves(squareName, color);
+                default: return [];
+            }
+        }
+
+        function getLegalMoves(squareName) {
+            const pieceCode = getBoardPiece(squareName);
+            if (!pieceCode) return [];
+            return getPotentialMoves(squareName).filter(dest => !wouldLeaveKingInCheck(squareName, dest));
+        }
+
+        function getAllLegalMoves(color) {
+            return Object.keys(boardState).flatMap(square => {
+                if (getColor(boardState[square]) !== color) return [];
+                return getLegalMoves(square).map(dest => ({ from: square, to: dest }));
+            });
+        }
+
+        function updateGameStatus() {
+            const isCheck = isKingInCheck(currentTurn, boardState);
+            const legalMoves = getAllLegalMoves(currentTurn);
+            if (isCheck && legalMoves.length === 0) {
+                gameStatus = `${currentTurn === 'w' ? 'White' : 'Black'} is checkmated`;
+            } else if (isCheck) {
+                gameStatus = `${currentTurn === 'w' ? 'White' : 'Black'} in check`;
+            } else if (legalMoves.length === 0) {
+                gameStatus = 'Stalemate';
+            } else {
+                gameStatus = 'In progress';
+            }
+        }
+
+        function addHistoryEntry(moveNotation, movingColor) {
+            if (movingColor === 'w') {
+                moveHistory.push({ white: moveNotation, black: '' });
+            } else {
+                if (moveHistory.length === 0) {
+                    moveHistory.push({ white: '', black: moveNotation });
+                } else {
+                    moveHistory[moveHistory.length - 1].black = moveNotation;
+                }
+            }
+        }
+
+        function updateCapturedDisplay() {
+            const whiteList = document.getElementById('capturedWhite');
+            const blackList = document.getElementById('capturedBlack');
+            whiteList.innerHTML = capturedWhite.map(code => `<span class="captured-piece ${code[0] === 'w' ? 'white' : 'black'}">${symbols[code]}</span>`).join('');
+            blackList.innerHTML = capturedBlack.map(code => `<span class="captured-piece ${code[0] === 'w' ? 'white' : 'black'}">${symbols[code]}</span>`).join('');
+        }
+
+        function updateHistoryDisplay() {
+            const historyEl = document.getElementById('moveHistory');
+            historyEl.innerHTML = moveHistory.map((entry, index) => {
+                return `<li><strong>${index + 1}.</strong> ${entry.white || ''} ${entry.black ? entry.black : ''}</li>`;
+            }).join('');
+        }
+
+        function updateStatusDisplay() {
+            document.getElementById('turnStatus').textContent = `Turn: ${currentTurn === 'w' ? 'White' : 'Black'}`;
+            document.getElementById('gameStatus').textContent = `Game status: ${gameStatus}`;
+        }
+
+        function updateBoard() {
+            updateGameStatus();
+            const legalMoves = selectedSquare ? new Set(getLegalMoves(selectedSquare)) : new Set();
+            document.querySelectorAll('.square').forEach(square => {
+                const pieceEl = square.querySelector('.piece');
+                const squareName = square.dataset.square;
+                const pieceCode = boardState[squareName] || '';
+                pieceEl.textContent = pieceCode ? symbols[pieceCode] : '';
+                square.classList.toggle('selected', selectedSquare === squareName);
+                square.classList.toggle('legal-target', legalMoves.has(squareName));
+                square.dataset.piece = pieceCode || '';
+            });
+            updateCapturedDisplay();
+            updateHistoryDisplay();
+            updateStatusDisplay();
+        }
+
+        function isLegalMove(from, to) {
+            return getLegalMoves(from).includes(to);
+        }
+
+        function onSquareClick(squareName) {
+            if (gameStatus !== 'In progress') return;
+            const clickedPiece = getBoardPiece(squareName);
+            if (!selectedSquare) {
+                if (clickedPiece && getColor(clickedPiece) === currentTurn) {
+                    selectedSquare = squareName;
+                    updateBoard();
+                }
+                return;
+            }
+
+            if (selectedSquare === squareName) {
+                selectedSquare = null;
+                updateBoard();
+                return;
+            }
+
+            const selectedPiece = getBoardPiece(selectedSquare);
+            if (clickedPiece && getColor(clickedPiece) === currentTurn) {
+                selectedSquare = squareName;
+                updateBoard();
+                return;
+            }
+
+            if (!isLegalMove(selectedSquare, squareName)) {
+                return;
+            }
+
+            const capturedPiece = getBoardPiece(squareName);
+            const movingColor = getColor(selectedPiece);
+            // special notation for castling
+            let moveNotation = `${selectedSquare}${capturedPiece ? 'x' : '-'}${squareName}`;
+            if (getPieceType(selectedPiece) === 'K') {
+                const fromFile = selectedSquare[0].charCodeAt(0);
+                const toFile = squareName[0].charCodeAt(0);
+                if (Math.abs(toFile - fromFile) === 2) {
+                    moveNotation = (toFile > fromFile) ? 'O-O' : 'O-O-O';
+                }
+            }
+            if (capturedPiece) {
+                if (getColor(capturedPiece) === 'w') {
+                    capturedWhite.push(capturedPiece);
+                } else {
+                    capturedBlack.push(capturedPiece);
+                }
+            }
+            // handle castling: if king moves two files, also move rook
+            const movingPiece = boardState[selectedSquare];
+            const fromFileCode = selectedSquare[0].charCodeAt(0);
+            const toFileCode = squareName[0].charCodeAt(0);
+            if (getPieceType(movingPiece) === 'K' && Math.abs(toFileCode - fromFileCode) === 2) {
+                // move king
+                boardState[squareName] = boardState[selectedSquare];
+                delete boardState[selectedSquare];
+                // determine rook movement
+                const rank = selectedSquare[1];
+                if (toFileCode > fromFileCode) {
+                    // kingside rook from h to f
+                    const rookFrom = `h${rank}`;
+                    const rookTo = `${String.fromCharCode(fromFileCode + 1)}${rank}`;
+                    if (boardState[rookFrom]) {
+                        boardState[rookTo] = boardState[rookFrom];
+                        delete boardState[rookFrom];
+                        movedByPosition[rookFrom] = true;
+                    }
+                } else {
+                    // queenside rook from a to d
+                    const rookFrom = `a${rank}`;
+                    const rookTo = `${String.fromCharCode(fromFileCode - 1)}${rank}`;
+                    if (boardState[rookFrom]) {
+                        boardState[rookTo] = boardState[rookFrom];
+                        delete boardState[rookFrom];
+                        movedByPosition[rookFrom] = true;
+                    }
+                }
+                movedByPosition[selectedSquare] = true;
+            } else {
+                boardState[squareName] = boardState[selectedSquare];
+                delete boardState[selectedSquare];
+                // mark original square as moved if king or rook moved
+                if (getPieceType(movingPiece) === 'K' || getPieceType(movingPiece) === 'R') {
+                    movedByPosition[selectedSquare] = true;
+                }
+            }
+            addHistoryEntry(moveNotation, movingColor);
+            selectedSquare = null;
+            currentTurn = getOpponentColor(currentTurn);
+            updateBoard();
+        }
+
+        function setupDifficultyStars() {
+            const stars = document.querySelectorAll('.star');
+            const message = document.getElementById('difficultyMessage');
+            stars.forEach(star => {
+                star.addEventListener('mouseover', () => {
+                    const value = parseInt(star.dataset.value, 10);
+                    stars.forEach(s => s.classList.toggle('hovered', parseInt(s.dataset.value, 10) <= value));
+                    message.textContent = `Difficulty: ${value} star${value > 1 ? 's' : ''}`;
+                });
+                star.addEventListener('mouseout', () => {
+                    stars.forEach(s => s.classList.remove('hovered'));
+                    message.textContent = 'Hover a star to preview difficulty.';
+                });
+                star.addEventListener('click', () => {
+                    const value = parseInt(star.dataset.value, 10);
+                    stars.forEach(s => s.classList.toggle('selected', parseInt(s.dataset.value, 10) <= value));
+                    message.textContent = `Selected difficulty: ${value} star${value > 1 ? 's' : ''}`;
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            createBoard();
+            updateBoard();
+            setupDifficultyStars();
+        });
+    </script>
+
+</body>
+</html>

@@ -4,15 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lessons - Step-by-Step</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
 
     <nav>
         <a href="index.html">Home</a> 
         <a href="#">Analysis Lab</a>
-        <a href="Tactic Learning" class="active-page">Lessons</a>
-        <a href="#">Puzzles</a>
+        <a href="lessons.html" class="active-page">Lessons</a>
+        <a href="puzzles.html">Puzzles</a>
         <a href="#">Developer Information</a>
     </nav>
 
@@ -51,7 +51,7 @@
                 <div class="module-card">
                     <h3>3. MIDDLE GAME</h3>
                     <div class="line-placeholder"></div>
-                    <button class="lesson-btn" onclick="changeVideo('m40-0Osh894','3. MIDDLE GAME')">Watch Lesson</button>
+                    <button class="lesson-btn" onclick="changeVideo('kTON84W-b2Q','3. MIDDLE GAME')">Watch Lesson</button>
                 </div>
             </div>
 
@@ -61,7 +61,7 @@
                 <div class="module-card">
                     <h3>4. PAWN STRUCTURE</h3>
                     <div class="line-placeholder"></div>
-                    <button class="lesson-btn" onclick="changeVideo('6SjUf9YhV-8','4. PAWN STRUCTURE')">Watch Lesson</button>
+                    <button class="lesson-btn" onclick="changeVideo('yAnNQY2Ac6w','4. PAWN STRUCTURE')">Watch Lesson</button>
                 </div>
             </div>
 
@@ -71,7 +71,7 @@
                 <div class="module-card">
                     <h3>5. ENDGAME I</h3>
                     <div class="line-placeholder"></div>
-                    <button class="lesson-btn" onclick="changeVideo('3-u46vYv_2s','5. ENDGAME I')">Watch Lesson</button>
+                    <button class="lesson-btn" onclick="changeVideo('uszf3ZRxYMo','5. ENDGAME I')">Watch Lesson</button>
                 </div>
             </div>
 
@@ -81,7 +81,7 @@
                 <div class="module-card">
                     <h3>6. ENDGAME II</h3>
                     <div class="line-placeholder"></div>
-                    <button class="lesson-btn" onclick="changeVideo('Zf8X9XWzB6k','6. ENDGAME II')">Watch Lesson</button>
+                    <button class="lesson-btn" onclick="changeVideo('PzEG62t2R_Q','6. ENDGAME II')">Watch Lesson</button>
                 </div>
             </div>
 
@@ -91,7 +91,7 @@
                 <div class="module-card">
                     <h3>7. TACTICS LAB</h3>
                     <div class="line-placeholder"></div>
-                    <button class="lesson-btn" onclick="changeVideo('66_vA_Z77Uo','7. TACTICS LAB')">Watch Lesson</button>
+                    <button class="lesson-btn" onclick="changeVideo('W1gWHIpQNVU','7. TACTICS LAB')">Watch Lesson</button>
                 </div>
             </div>
 
@@ -99,29 +99,9 @@
                 <div class="milestone-label">Milestone</div>
                 <div class="number-circle">8</div>
                 <div class="module-card">
-                    <h3>8. POSITIONAL PLAY</h3>
+                    <h3>8. BLUNDER STUDY</h3>
                     <div class="line-placeholder"></div>
-                    <button class="lesson-btn" onclick="changeVideo('NfFf3h9N8RE','8. POSITIONAL PLAY')">Watch Lesson</button>
-                </div>
-            </div>
-
-            <div class="milestone-row">
-                <div class="milestone-label">Milestone</div>
-                <div class="number-circle">9</div>
-                <div class="module-card">
-                    <h3>9. BLUNDER STUDY</h3>
-                    <div class="line-placeholder"></div>
-                    <button class="lesson-btn" onclick="changeVideo('Eq4O6n7pM4U','9. BLUNDER STUDY')">Watch Lesson</button>
-                </div>
-            </div>
-
-            <div class="milestone-row">
-                <div class="milestone-label">Milestone</div>
-                <div class="number-circle">10</div>
-                <div class="module-card">
-                    <h3>10. FINAL REVIEW</h3>
-                    <div class="line-placeholder"></div>
-                    <button class="lesson-btn" onclick="changeVideo('R6Y89Z_qj-U','10. FINAL REVIEW')">Watch Lesson</button>
+                    <button class="lesson-btn" onclick="changeVideo('pP4YYY0TnHY','8. BLUNDER STUDY')">Watch Lesson</button>
                 </div>
             </div>
         </div>
@@ -131,31 +111,50 @@
                 <div class="actual-video">
                     <iframe 
                         id="videoFrame"
+                        title="Lesson Video Player"
                         width="100%" 
                         height="100%" 
-                        src="https://www.youtube.com/embed/rmbU97iftC8?rel=0" 
+                        src="about:blank" 
                         frameborder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
                         allowfullscreen>
                     </iframe>
                 </div>
                 <p id="videoTitle" style="margin-top:15px; font-weight:bold; color:#331a00;">Now Playing: Selected Lesson</p>
-                <p style="margin-top:8px;"><a id="openLink" href="https://www.youtube.com/watch?v=rmbU97iftC8" target="_blank" rel="noopener" style="color:#331a00; font-weight:bold; text-decoration:underline;">Open on YouTube</a></p>
-                <p id="videoHint" style="margin-top:10px; color:#331a00; font-size:14px; max-width:420px; text-align:center;">If a lesson says "Video unavailable", the selected video may not be embeddable. Use the Open on YouTube link to watch it directly.</p>
+                <p style="margin-top:8px;"><a id="openLink" href="https://www.youtube.com/watch?v=rmbU97iftC8" target="_blank" rel="noopener noreferrer" style="color:#331a00; font-weight:bold; text-decoration:underline;">Open on YouTube</a></p>
+                <p id="videoHint" style="margin-top:10px; color:#331a00; font-size:14px; max-width:420px; text-align:center;">If a lesson shows an embed error, the selected video may not allow embedding. Use the Open on YouTube link to watch it directly. If you are opening this page from a local file, run <code>serve.sh</code> and open it from <strong>http://localhost:8000/lessons.html</strong>.</p>
             </div>
         </div>
 
     </div>
 
     <script>
+        function getEmbedUrl(id) {
+            const base = `https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1&autoplay=1`;
+            if (window.location.protocol !== 'file:') {
+                return base + `&origin=${encodeURIComponent(window.location.origin)}`;
+            }
+            return base;
+        }
+
         function changeVideo(id, title) {
             const frame = document.getElementById('videoFrame');
-            frame.src = `https://www.youtube.com/embed/${id}?rel=0&autoplay=1`;
+            frame.src = getEmbedUrl(id);
             const titleEl = document.getElementById('videoTitle');
             if (titleEl) titleEl.textContent = 'Now Playing: ' + (title || 'Selected Lesson');
             const openLink = document.getElementById('openLink');
             if (openLink) openLink.href = `https://www.youtube.com/watch?v=${id}`;
         }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            changeVideo('rmbU97iftC8', '1. THE CARO-KANN');
+            if (window.location.protocol === 'file:') {
+                const hint = document.getElementById('videoHint');
+                if (hint) {
+                    hint.innerHTML = 'This page is loaded from a local file, which can break YouTube embeds. Run <code>serve.sh</code> and open <strong>http://localhost:8000/lessons.html</strong> to fix the video player.';
+                }
+            }
+        });
     </script>
 
 </body>
