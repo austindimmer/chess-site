@@ -33,9 +33,27 @@ nav a:hover {
     color: #ff4d4d;
 }
 
-header { 
-    text-align: center; 
-    padding: 40px 20px; 
+header {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+/* Left column on the lessons page — wraps the header and the timeline so
+   they share the same width. Without this, the standalone <header> centers
+   across the full viewport and runs under the fixed video panel on the
+   right. */
+.lesson-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.lesson-header {
+    text-align: center;
+    padding: 0 20px 30px;
+}
+
+.lesson-header h1 {
+    margin: 0;
 }
 
 .hero-banner { 

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lessons - Step-by-Step</title>
-    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
 
@@ -16,14 +16,15 @@
         <a href="#">Developer Information</a>
     </nav>
 
-    <header>
-        <h1>LESSONS (STEP-BY-STEP MODULES)</h1>
-    </header>
-
     <div class="main-layout">
-        
-        <div class="timeline-container">
-            <div class="timeline-line"></div>
+
+        <section class="lesson-content">
+            <header class="lesson-header">
+                <h1>LESSONS (STEP-BY-STEP MODULES)</h1>
+            </header>
+
+            <div class="timeline-container">
+                <div class="timeline-line"></div>
 
             <div class="milestone-row">
                 <div class="milestone-label">Milestone</div>
@@ -104,9 +105,10 @@
                     <button class="lesson-btn" onclick="changeVideo('pP4YYY0TnHY','8. BLUNDER STUDY')">Watch Lesson</button>
                 </div>
             </div>
-        </div>
+            </div>
+        </section>
 
-        <div class="video-side">
+        <aside class="video-side">
             <div class="video-placeholder">
                 <div class="actual-video">
                     <iframe 
@@ -124,7 +126,7 @@
                 <p style="margin-top:8px;"><a id="openLink" href="https://www.youtube.com/watch?v=rmbU97iftC8" target="_blank" rel="noopener noreferrer" style="color:#331a00; font-weight:bold; text-decoration:underline;">Open on YouTube</a></p>
                 <p id="videoHint" style="margin-top:10px; color:#331a00; font-size:14px; max-width:420px; text-align:center;">If a lesson shows an embed error, the selected video may not allow embedding. Use the Open on YouTube link to watch it directly. If you are opening this page from a local file, run <code>serve.sh</code> and open it from <strong>http://localhost:8000/lessons.html</strong>.</p>
             </div>
-        </div>
+        </aside>
 
     </div>
 
