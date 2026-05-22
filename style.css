@@ -226,6 +226,21 @@ nav a:hover { color: #ff4d4d; }
     font-weight: bold;
     margin: 0 20px;
     border: 3px solid #632111;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.number-circle:hover {
+    transform: scale(1.08);
+    background-color: #b32d1f;
+    box-shadow: 0 0 0 4px rgba(179, 45, 31, 0.18);
+}
+
+.milestone-row:has(.module-card.active) .number-circle {
+    background-color: #2f5a1d;
+    border-color: #1d3a12;
+    box-shadow: 0 0 0 4px rgba(47, 90, 29, 0.22);
 }
 
 .module-card {
@@ -235,9 +250,97 @@ nav a:hover { color: #ff4d4d; }
     padding: 20px;
     width: 250px;
     box-shadow: 4px 4px 0px #331a00;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+    user-select: none;
+}
+
+.module-card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px #b32d1f;
+    background-color: #fffafa;
+}
+
+.module-card:active {
+    transform: translate(1px, 1px);
+    box-shadow: 2px 2px 0px #331a00;
+}
+
+.module-card:focus-visible {
+    outline: 3px solid #ff8a00;
+    outline-offset: 3px;
+}
+
+.module-card.active {
+    border-color: #b32d1f;
+    background-color: #fff4ec;
+    box-shadow: 4px 4px 0px #b32d1f;
+}
+
+.module-card.active h3 {
+    color: #b32d1f;
 }
 
 .line-placeholder { height: 4px; background: #ddd; margin: 8px 0; border-radius: 2px; }
+
+/* --- WATCH LESSON BUTTON --- */
+.lesson-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    padding: 10px 18px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: #ffffff;
+    background: linear-gradient(180deg, #d14d33 0%, #8a2e17 100%);
+    border: 2px solid #331a00;
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: 2px 2px 0px #331a00;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+}
+
+.lesson-btn:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0px #331a00;
+    filter: brightness(1.08);
+}
+
+.lesson-btn:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0px #331a00;
+}
+
+.lesson-btn:focus-visible {
+    outline: 3px solid #ff8a00;
+    outline-offset: 2px;
+}
+
+.lesson-btn-icon {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 18px;
+    height: 18px;
+    font-size: 11px;
+    line-height: 1;
+    color: #b32d1f;
+    background: #ffffff;
+    border-radius: 50%;
+    padding-left: 2px; /* optical centering for the triangle glyph */
+}
+
+.module-card.active .lesson-btn {
+    background: linear-gradient(180deg, #5a8a3a 0%, #2f5a1d 100%);
+}
+
+.module-card.active .lesson-btn-icon {
+    color: #2f5a1d;
+}
 
 /* --- VIDEO PLAYER --- */
 .video-side {
@@ -263,22 +366,63 @@ nav a:hover { color: #ff4d4d; }
 }
 
 @media (max-width: 900px) {
+    .main-layout {
+        padding-right: 0;
+        flex-direction: column;
+        align-items: stretch;
+    }
     .video-side {
         position: static;
         width: 100%;
         max-width: 500px;
-        margin: 0 auto;
+        margin: 30px auto 0;
     }
 }
 
-@media (max-width: 800px) {
-    .main-layout {
-        flex-direction: column;
-        align-items: center;
+/* Phone-sized screens: drop body padding, hide the "Milestone" label,
+   let cards fill the available width, and shrink the heading so it fits. */
+@media (max-width: 600px) {
+    body {
+        padding: 16px;
+        padding-top: 72px;
     }
 
-    .video-side {
-        padding-top: 20px;
+    .lesson-header {
+        padding: 0 4px 20px;
+    }
+
+    .lesson-header h1 {
+        font-size: 26px;
+    }
+
+    .milestone-label {
+        display: none;
+    }
+
+    .timeline-container {
+        padding-left: 0;
+    }
+
+    .timeline-line {
+        left: 17px;
+    }
+
+    .milestone-row {
+        margin-bottom: 28px;
+    }
+
+    .number-circle {
+        margin: 0 14px 0 0;
+    }
+
+    .module-card {
+        width: auto;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .video-placeholder {
+        padding: 18px;
     }
 }
 
